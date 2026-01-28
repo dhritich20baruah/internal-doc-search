@@ -10,11 +10,11 @@ const Dashboard = () => {
   return (
     <div className="">
       {visible ? (
-        <div className="shadow-2xl shadow-black">
+        <div>
           <DocumentSearch />
         </div>
       ) : (
-        <div className="shadow-2xl shadow-black">
+        <div>
           <UploadForm/>
         </div>
       )}
