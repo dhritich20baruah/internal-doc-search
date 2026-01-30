@@ -18,7 +18,7 @@ const Dashboard = () => {
           <UploadForm/>
         </div>
       )}
-      <div className="absolute top-20 right-20">
+      <div className="absolute top-5 right-20">
         <div className="flex">
           <button
             className="bg-green-700 text-white p-2 cursor-pointer text-md rounded-md hover:text-red-700 hover:bg-white"

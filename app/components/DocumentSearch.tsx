@@ -142,24 +142,10 @@ export default function DocumentSearch() {
         </button>
       </form>
 
-      {/* Status Messages */}
-      {loading && (
-        <div className="flex items-center justify-center py-8 text-blue-600 space-x-2">
-          <Loader2 className="h-5 w-5 animate-spin" />
-          <span className="font-medium">Querying database...</span>
-        </div>
-      )}
-
-      {error && !loading && (
-        <div className="p-4 bg-red-50 text-red-600 rounded-xl border border-red-100 text-sm font-medium">
-          {error}
-        </div>
-      )}
-
       {/* Results Display */}
       {loading && (
         <p className="text-center text-blue-600 flex items-center justify-center mt-4">
-          <Loader2 className="h-4 w-4 animate-spin mr-2" /> Searching...
+          <Loader2 className="h-4 w-4 animate-spin mr-2" /> Searching database...
         </p>
       )}
       {error && <p className="text-center text-red-600 mt-4">{error}</p>}
@@ -221,14 +207,6 @@ export default function DocumentSearch() {
               </li>
             ))}
           </ul>
-        </div>
-      )}
-      {!loading && results.length === 0 && !error && query && (
-        <div className="text-center py-12">
-          <Search className="w-12 h-12 text-gray-200 mx-auto mb-3" />
-          <p className="text-gray-500 text-sm">
-            No documents found matching "{query}"
-          </p>
         </div>
       )}
     </div>
