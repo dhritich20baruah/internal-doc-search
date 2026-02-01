@@ -39,7 +39,7 @@ export async function extractTextFromPdf(file: File) {
   return fullText.trim();
 }
 
-const UploadForm = (user_id: any) => {
+const UploadForm = () => {
   const [file, setFile] = useState<File | null>(null);
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("");
@@ -79,6 +79,8 @@ const UploadForm = (user_id: any) => {
         data: { session },
       } = await supabase.auth.getSession();
       const userId = session?.user.id;
+      const user_email = session?.user.email;
+      console.log(user_email)
 
       if (!userId) {
         throw new Error("You must be logged in to upload files.");
@@ -124,14 +126,17 @@ const UploadForm = (user_id: any) => {
             category: category,
             topic: "general",
             user_id: userId,
+            user_email: user_email
           },
         ])
         .select()
         .single();
 
+      if(insertError) throw insertError
+
       setMessageType("success");
       setMessage(
-        `Success! Document "${insertData.file_name}" uploaded and indexed.`,
+        `Success! Document uploaded and indexed.`,
       );
       setFile(null);
       setTitle("");

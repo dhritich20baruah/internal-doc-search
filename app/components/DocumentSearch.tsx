@@ -22,9 +22,15 @@ export default function DocumentSearch() {
     setLoading(true);
     setError(null);
     try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const user_email = session?.user.email;
+
       const { data, error } = await supabase
         .from("documents")
         .select("*")
+        .eq("user_email", user_email)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -50,11 +56,17 @@ export default function DocumentSearch() {
     setLoading(true);
 
     try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const user_email = session?.user.email;
+
       const { data, error } = await supabase
         .from("documents")
         .select("*")
+        .eq("user_email", user_email)
         .textSearch("tsv_content, category, file_name", searchQuery, {
-          type: "websearch"
+          type: "websearch",
         })
         .limit(50);
       if (error) throw error;
@@ -82,6 +94,16 @@ export default function DocumentSearch() {
     setResults([]);
     setError(null);
   };
+
+  const deleteDocs = async(id: any) => {
+    const {data, error} = await supabase.from("documents").delete().eq("id", id);
+
+     if (error) {
+      console.error("Error deleting tasks: ", error.message);
+      return;
+    }
+    fetchAllDocs()
+  }
 
   return (
     <div className="p-6 rounded-xl shadow-2xl bg-white max-w-2xl mx-auto font-sans">
@@ -145,7 +167,8 @@ export default function DocumentSearch() {
       {/* Results Display */}
       {loading && (
         <p className="text-center text-blue-600 flex items-center justify-center mt-4">
-          <Loader2 className="h-4 w-4 animate-spin mr-2" /> Searching database...
+          <Loader2 className="h-4 w-4 animate-spin mr-2" /> Searching
+          database...
         </p>
       )}
       {error && <p className="text-center text-red-600 mt-4">{error}</p>}
@@ -204,6 +227,7 @@ export default function DocumentSearch() {
                     "...{doc.content.substring(0, 150)}..."
                   </p>
                 </div>
+                <button className="bg-red-900 text-white p-2 hover:bg-red-700 hover:cursor-pointer" onClick={()=>deleteDocs(doc.id)}>Delete</button>
               </li>
             ))}
           </ul>
