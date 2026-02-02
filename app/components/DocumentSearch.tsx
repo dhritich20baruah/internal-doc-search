@@ -10,7 +10,9 @@ import {
   XCircle,
   ExternalLink,
   Folder,
+  Trash2
 } from "lucide-react";
+import axios from "axios";
 
 export default function DocumentSearch() {
   const [query, setQuery] = useState("");
@@ -95,16 +97,92 @@ export default function DocumentSearch() {
     setError(null);
   };
 
-  const deleteDocs = async(id: any) => {
-    const {data, error} = await supabase.from("documents").delete().eq("id", id);
-
-     if (error) {
-      console.error("Error deleting tasks: ", error.message);
-      return;
-    }
-    fetchAllDocs()
+  interface StorageError {
+    message: string;
+    status?: number;
+    name?: string;
   }
 
+  // const deleteDocs = async (id: any, fileUrl: any) => {
+  //   const isConfirmed = window.confirm(
+  //     "Are you sure you want to permanently delete this document and its related data?",
+  //   );
+
+  //   if (!isConfirmed) return;
+
+  //   try {
+  //     const urlParts = fileUrl.split("/storage/v1/object/public/documents/");
+  //     const filePath = urlParts[1];
+  //     console.log(filePath);
+
+  //     if (!filePath) {
+  //       throw new Error("Could not determine file path from URL.");
+  //     }
+
+  //     const { data: storageData, error } = await supabase.storage
+  //       .from("documents")
+  //       .remove(["a5e7324b-b699-4a39-8459-35fd705063d2/1770010451758.pdf"]);
+
+  //     const storageError = error as StorageError | null;
+
+  //     if (storageError) {
+  //       console.error("Storage deletion error:", storageError);
+
+  //       if (
+  //         storageError.status === 403 ||
+  //         storageError.message.toLowerCase().includes("identity")
+  //       ) {
+  //         throw new Error(
+  //           "Storage access denied. Check your RLS policies for the 'marketing-documents' bucket.",
+  //         );
+  //       }
+  //       throw new Error(`Storage error: ${storageError.message}`);
+  //     }
+
+  //     if (!storageData || storageData.length === 0) {
+  //       console.warn(
+  //         "Storage removal call returned success, but no files were actually deleted. Check if the path is correct.",
+  //       );
+  //     } else {
+  //       console.log("Storage file deleted successfully:", storageData);
+  //     }
+
+  //     // const { data, error: dbError } = await supabase
+  //     //   .from("documents")
+  //     //   .delete()
+  //     //   .eq("id", id);
+
+  //     // if (dbError) throw dbError;
+
+  //     console.log("Document and file deleted successfully");
+  //   } catch (error: any) {
+  //     console.error("Delete failed:", error.message);
+  //     setError("Failed to delete: " + error.message);
+  //   }
+  //   fetchAllDocs();
+  // };
+
+  const deleteDocs = async (id: any, fileUrl: any) => {
+    const isConfirmed = window.confirm(
+      "Are you sure you want to permanently delete this document and its related data?",
+    );
+
+    if (!isConfirmed) return;
+    try {
+      const obj = {
+        docId: id,
+        fileUrl: fileUrl,
+      };
+
+      const response = await axios.post("/api/deleteFile", obj);
+      if(response.status == 200){
+        alert("File deleted")
+        window.location.reload()
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
   return (
     <div className="p-6 rounded-xl shadow-2xl bg-white max-w-2xl mx-auto font-sans">
       <div className="flex items-center space-x-2 mb-6">
@@ -227,7 +305,12 @@ export default function DocumentSearch() {
                     "...{doc.content.substring(0, 150)}..."
                   </p>
                 </div>
-                <button className="bg-red-900 text-white p-2 hover:bg-red-700 hover:cursor-pointer" onClick={()=>deleteDocs(doc.id)}>Delete</button>
+                <div className="flex justify-end my-2">
+                <Trash2
+                  className="bg-red-700 text-white hover:bg-red-600 hover:cursor-pointer h-8 w-8 rounded-md p-1"
+                  onClick={() => deleteDocs(doc.id, doc.file_url)}
+                />
+                </div>
               </li>
             ))}
           </ul>
