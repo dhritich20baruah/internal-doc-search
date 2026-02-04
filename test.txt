@@ -1,0 +1,11 @@
+// Pseudo-code for your processing script
+const paragraphs = page.getTextContent(); 
+paragraphs.forEach((para, index) => {
+  await supabase.from('document_segments').insert({
+    doc_id: documentId,
+    content: para.text,
+    page_number: currentPage,
+    paragraph_number: index + 1,
+    user_email: userEmail
+  });
+});
