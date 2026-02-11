@@ -16,6 +16,10 @@ const isPdfFile = (file: File) => {
   return file.name.toLowerCase().endsWith(".pdf");
 };
 
+const isDocxFile = (file: File) => {
+  return file.name.toLowerCase().endsWith(".docx")
+}
+
 async function runTesseractOcr(file: File): Promise<string> {
   try {
     const {
@@ -89,9 +93,20 @@ const UploadForm = () => {
       setMessage("Extracting text content.....");
       let extractedTextContent = "";
       if (isImageFile(file)) {
-        extractedTextContent = await extractTextFromPdf(file);
+        extractedTextContent = await runTesseractOcr(file);
       } else if (isPdfFile(file)) {
         extractedTextContent = await extractTextFromPdf(file);
+      } else if (isDocxFile(file)) {
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const res = await fetch("/api/extract-docx", {
+          method: "POST",
+          body: formData,
+        });
+
+        const data = await res.json();
+        extractedTextContent = data.text;
       }
 
       if (!extractedTextContent || extractedTextContent.includes("_ERROR")) {
@@ -197,11 +212,11 @@ const UploadForm = () => {
         {/* File Input */}
         <div className="space-y-1">
           <label className="text-sm font-medium text-gray-700">
-            Select File (PDF/JPEG/JPG/PNG)
+            Select File (PDF/JPEG/JPG/PNG/DOCX)
           </label>
           <input
             type="file"
-            accept=".pdf,.png,.jpeg,.jpg"
+            accept=".pdf,.png,.jpeg,.jpg,.docx"
             onChange={handleFileChange}
             required
             className="w-full text-sm text-gray-500
