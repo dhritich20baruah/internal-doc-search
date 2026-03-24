@@ -20,6 +20,14 @@ const isDocxFile = (file: File) => {
   return file.name.toLowerCase().endsWith(".docx")
 }
 
+const isMp3File = (file: File) => {
+  return file.name.toLowerCase().endsWith(".mp3")
+}
+
+const isWavFile = (file: File) => {
+  return file.name.toLowerCase().endsWith(".wav")
+}
+
 async function runTesseractOcr(file: File): Promise<string> {
   try {
     const {
@@ -105,6 +113,16 @@ const UploadForm = () => {
           body: formData,
         });
 
+        const data = await res.json();
+        extractedTextContent = data.text;
+      } else if (isMp3File(file)){
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const res = await fetch("/api/process-audio", {
+          method: "POST",
+          body: formData,
+        });
         const data = await res.json();
         extractedTextContent = data.text;
       }
@@ -212,11 +230,11 @@ const UploadForm = () => {
         {/* File Input */}
         <div className="space-y-1">
           <label className="text-sm font-medium text-gray-700">
-            Select File (PDF/JPEG/JPG/PNG/DOCX)
+            Select File (PDF/JPEG/JPG/PNG/DOCX/MP3/WAV)
           </label>
           <input
             type="file"
-            accept=".pdf,.png,.jpeg,.jpg,.docx"
+            accept=".pdf,.png,.jpeg,.jpg,.docx,.mp3,.wav"
             onChange={handleFileChange}
             required
             className="w-full text-sm text-gray-500
