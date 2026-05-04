@@ -17,16 +17,16 @@ const isPdfFile = (file: File) => {
 };
 
 const isDocxFile = (file: File) => {
-  return file.name.toLowerCase().endsWith(".docx")
-}
+  return file.name.toLowerCase().endsWith(".docx");
+};
 
 const isMp3File = (file: File) => {
-  return file.name.toLowerCase().endsWith(".mp3")
-}
+  return file.name.toLowerCase().endsWith(".mp3");
+};
 
 const isWavFile = (file: File) => {
-  return file.name.toLowerCase().endsWith(".wav")
-}
+  return file.name.toLowerCase().endsWith(".wav");
+};
 
 async function runTesseractOcr(file: File): Promise<string> {
   try {
@@ -92,7 +92,7 @@ const UploadForm = () => {
       } = await supabase.auth.getSession();
       const userId = session?.user.id;
       const user_email = session?.user.email;
-      console.log(user_email)
+      console.log(user_email);
 
       if (!userId) {
         throw new Error("You must be logged in to upload files.");
@@ -101,7 +101,15 @@ const UploadForm = () => {
       setMessage("Extracting text content.....");
       let extractedTextContent = "";
       if (isImageFile(file)) {
-        extractedTextContent = await runTesseractOcr(file);
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const res = await fetch("/api/process-image", {
+          method: "POST",
+          body: formData,
+        });
+        const data = await res.json();
+        extractedTextContent = data.text;
       } else if (isPdfFile(file)) {
         extractedTextContent = await extractTextFromPdf(file);
       } else if (isDocxFile(file)) {
@@ -115,7 +123,7 @@ const UploadForm = () => {
 
         const data = await res.json();
         extractedTextContent = data.text;
-      } else if (isMp3File(file)){
+      } else if (isMp3File(file)) {
         const formData = new FormData();
         formData.append("file", file);
 
@@ -159,18 +167,16 @@ const UploadForm = () => {
             category: category,
             topic: "general",
             user_id: userId,
-            user_email: user_email
+            user_email: user_email,
           },
         ])
         .select()
         .single();
 
-      if(insertError) throw insertError
+      if (insertError) throw insertError;
 
       setMessageType("success");
-      setMessage(
-        `Success! Document uploaded and indexed.`,
-      );
+      setMessage(`Success! Document uploaded and indexed.`);
       setFile(null);
       setTitle("");
       setCategory("");
