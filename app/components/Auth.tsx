@@ -5,13 +5,14 @@ import {
   Zap,
   Search,
   Shield,
-  FileText,
   Cpu,
   CheckCircle2,
   ArrowLeft,
   Mail,
   Loader2,
   KeyRound,
+  EyeOff,
+  Eye,
 } from "lucide-react";
 
 type AuthView =
@@ -29,6 +30,7 @@ export const Auth = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [view, setView] = useState<AuthView>("signin");
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -37,8 +39,12 @@ export const Auth = () => {
 
     try {
       if (view === "signup") {
-        const { error } = await supabase.auth.signUp({ email, password });
+        const { data, error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
+
+        if (data.user && data.user.identities && data.user.identities.length === 0) {
+          throw new Error("An account with this email already exists. Please sign in or signup using a different email.")
+        }
         setView("success-signup");
       } else if (view === "signin") {
         const { error } = await supabase.auth.signInWithPassword({
@@ -59,31 +65,6 @@ export const Auth = () => {
     } finally {
       setLoading(false);
     }
-
-    // if (isSignUp) {
-    //   const { error: signUpError } = await supabase.auth.signUp({
-    //     email,
-    //     password,
-    //   });
-    //   setShowSuccessMessage(true);
-    //   setEmail("")
-    //   setPassword("")
-    //   if (signUpError) {
-    //     setErrorMessage(signUpError.message)
-    //     console.error("Error signing up: ", signUpError.message);
-    //     return;
-    //   }
-    // } else {
-    //   const { error: signInError } = await supabase.auth.signInWithPassword({
-    //     email,
-    //     password,
-    //   });
-    //   if (signInError) {
-    //     setErrorMessage(signInError.message)
-    //     console.error("Error signing in: ", signInError.message);
-    //     return;
-    //   }
-    // }
   };
 
   const renderContent = () => {
@@ -131,14 +112,14 @@ export const Auth = () => {
           <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight mb-4">
             Reset link sent
           </h2>
-          <p className="text-slate-600 mb-6 leading-relaxed">
+          <p className="text-slate-100 mb-6 leading-relaxed">
             Check your inbox at{" "}
             <span className="font-bold text-slate-900">{email}</span>. We've
             sent instructions to reset your password.
           </p>
           <button
             onClick={() => setView("signin")}
-            className="flex items-center text-sm font-semibold text-indigo-600 hover:text-indigo-800"
+            className="flex items-center text-sm font-semibold text-indigo-200 hover:text-indigo-100"
           >
             <ArrowLeft className="w-4 h-4 mr-2" /> Back to Sign In
           </button>
@@ -178,13 +159,15 @@ export const Auth = () => {
             />
           </div>
 
-           {view !== "forgot-password" && (
+          {view !== "forgot-password" && (
             <div className="space-y-1">
               <div className="flex justify-between items-center">
-                <label className="text-sm font-bold uppercase tracking-wider text-white ml-1">Password</label>
+                <label className="text-sm font-bold uppercase tracking-wider text-white ml-1">
+                  Password
+                </label>
                 {view === "signin" && (
-                  <button 
-                    type="button" 
+                  <button
+                    type="button"
                     onClick={() => setView("forgot-password")}
                     className="text-sm font-semibold text-orange-200 hover:text-orange-30"
                   >
@@ -192,14 +175,29 @@ export const Auth = () => {
                   </button>
                 )}
               </div>
+              <div className="relative">
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all outline-none bg-white"
                 required
               />
+              {/* Toggle Button */}
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-0 top-0 pr-3 flex items-center text-gray-600 hover:text-gray-800"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? (
+                  <EyeOff className="h-5 w-5" />
+                ) : (
+                  <Eye className="h-5 w-5" />
+                )}
+              </button>
+              </div>
             </div>
           )}
 
@@ -215,15 +213,24 @@ export const Auth = () => {
             disabled={loading}
             className="w-full py-4 bg-indigo-800 text-white rounded-xl font-bold shadow-lg shadow-indigo-200 hover:bg-indigo-900 active:scale-[0.98] transition-all disabled:bg-slate-300 disabled:shadow-none flex items-center justify-center hover:cursor-pointer"
           >
-            {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 
-             view === "signin" ? "Sign In" : 
-             view === "signup" ? "Create Account" : "Send Reset Link"}
+            {loading ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : view === "signin" ? (
+              "Sign In"
+            ) : view === "signup" ? (
+              "Create Account"
+            ) : (
+              "Send Reset Link"
+            )}
           </button>
         </form>
 
         <div className="mt-8 text-center">
           {view === "forgot-password" ? (
-            <button onClick={() => setView("signin")} className="text-md font-semibold text-white hover:text-red-300 hover:cursor-pointer">
+            <button
+              onClick={() => setView("signin")}
+              className="text-md font-semibold text-white hover:text-red-300 hover:cursor-pointer"
+            >
               Return to Sign In
             </button>
           ) : (
@@ -231,7 +238,9 @@ export const Auth = () => {
               onClick={() => setView(view === "signin" ? "signup" : "signin")}
               className="text-md font-semibold text-orange-200 hover:text-orange-300"
             >
-              {view === "signin" ? "Don't have an account? Create one" : "Already have an account? Sign In"}
+              {view === "signin"
+                ? "Don't have an account? Create one"
+                : "Already have an account? Sign In"}
             </button>
           )}
         </div>

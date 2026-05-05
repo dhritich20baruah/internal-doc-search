@@ -190,7 +190,7 @@ export default function DocumentSearch() {
       {error && <p className="text-center text-red-600 mt-4">{error}</p>}
 
       {!loading && results.length > 0 && (
-        <div className="mt-6 space-y-3 bg-white p-10 m-5 rounded-2xl">
+        <div className="mt-6 space-y-3 bg-white md:p-10 md:m-5 p-5 rounded-2xl">
           <div className="flex items-center justify-between border-b border-gray-100 pb-2 mx-5">
             <h4 className="text-sm font-bold text-gray-500 uppercase tracking-wider">
               {results.length} Result{results.length !== 1 ? "s" : ""} Found
@@ -207,7 +207,7 @@ export default function DocumentSearch() {
             {results.map((doc) => (
               <li
                 key={doc.id}
-                className="group p-4 border border-gray-200 rounded-xl shadow-sm hover:shadow-lg shadow-gray-600 transition-all bg-white hover:border-blue-200 m-3 w-[31%]"
+                className="group md:p-4 p-2 border border-gray-200 rounded-xl shadow-sm hover:shadow-lg shadow-gray-600 transition-all bg-white hover:border-blue-200 md:m-3 md:w-[31%] w-full"
               >
                 <div className="flex items-start justify-between">
                   <div className="flex items-center space-x-3">
