@@ -28,24 +28,6 @@ const isWavFile = (file: File) => {
   return file.name.toLowerCase().endsWith(".wav");
 };
 
-async function runTesseractOcr(file: File): Promise<string> {
-  try {
-    const {
-      data: { text },
-    } = await Tesseract.recognize(
-      file,
-      "eng", // Language: English
-      {
-        logger: (m) => console.log(m.status, m.progress), // Show OCR progress
-      },
-    );
-    return text.trim();
-  } catch (e) {
-    console.error("Tesseract OCR Failed:", e);
-    return "OCR_FAILED_ERROR: Could not extract text from image.";
-  }
-}
-
 export async function extractTextFromPdf(file: File) {
   let fullText = await pdfToText(file);
   return fullText.trim();

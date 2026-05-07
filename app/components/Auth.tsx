@@ -292,8 +292,8 @@ export const Auth = () => {
             </span>
           </h2>
 
-          <p className="text-xl text-slate-400 leading-relaxed mb-12">
-            DocuIntel automatically extracts text from your PDFs and Images,
+          <p className="text-xl text-slate-400 leading-relaxed mb-12 text-justify">
+            DocuIntel automatically extracts text from your PDFs, Word Documents and Images, also transcribes mp3 audio files,
             categories them with precision, and provides a powerful Full-Text
             Search portal to find anything in seconds.
           </p>
@@ -320,8 +320,8 @@ export const Auth = () => {
                 <h4 className="font-bold">OCR Extraction</h4>
               </div>
               <p className="text-slate-500 text-sm leading-snug">
-                Powered by Tesseract and PDF-to-Text to ensure no data remains
-                locked inside flat images or scans.
+                Powered by Gemini and PDF-to-Text to ensure no data remains
+                locked inside flat images or PDFs respectively.
               </p>
             </div>
 
@@ -343,11 +343,10 @@ export const Auth = () => {
                 <div className="bg-slate-800 p-2 rounded-lg text-indigo-400">
                   <CheckCircle2 className="w-5 h-5" />
                 </div>
-                <h4 className="font-bold">Smart Tags</h4>
+                <h4 className="font-bold">Transcription</h4>
               </div>
               <p className="text-slate-500 text-sm leading-snug">
-                Automatic and manual categorization of documents by project,
-                topic, and department.
+                Transcribes mp3 files and stores the indexed data.
               </p>
             </div>
           </div>
