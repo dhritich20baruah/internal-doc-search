@@ -92,3 +92,110 @@ to public
 with check (
   (select auth.uid()) = user_id
 );
+
+CREATE POLICY "Users can delete their own files"
+ON storage.objects
+FOR DELETE
+TO authenticated
+USING (
+  bucket_id = 'documents' AND 
+  (storage.foldername(name))[1] = auth.uid()::text
+);
+
+create extension if not exists vector;
+
+alter table documents add column if not exists embedding vector(768);
+
+create or replace function match_documents(
+  query_embedding vector(768),
+  match_threshold float,
+  match_count int
+)
+returns table (
+  id uuid,
+  file_name text,
+  content text,
+  similarity float
+)
+language plpgsql
+as $$
+begin
+  return query
+  select
+    documents.id,
+    documents.file_name,
+    documents.content,
+    1 - (documents.embedding <=> query_embedding) as similarity
+  from documents
+  where 1 - (documents.embedding <=> query_embedding) > match_threshold
+  order by similarity desc
+  limit match_count;
+end;
+$$;
+
+-- 1. Drop the old column (this will delete existing embeddings, but you can re-index)
+alter table documents drop column if exists embedding;
+
+-- 2. Add the column back with the correct dimensions for Gemini 2
+alter table documents add column embedding vector(3072);
+
+-- 3. Update your match_documents function to accept 3072
+create or replace function match_documents (
+  query_embedding vector(3072), -- Change this from 768 to 3072
+  match_threshold float,
+  match_count int
+)
+returns table (
+  id uuid,
+  file_name text,
+  content text,
+  similarity float
+)
+language plpgsql
+as $$
+begin
+  return query
+  select
+    documents.id,
+    documents.file_name,
+    documents.content,
+    1 - (documents.embedding <=> query_embedding) as similarity
+  from documents
+  where 1 - (documents.embedding <=> query_embedding) > match_threshold
+  order by similarity desc
+  limit match_count;
+end;
+$$;
+
+-- adds a p_user_email parameter and a WHERE clause to filter the results.
+create or replace function match_documents (
+  query_embedding vector(3072),
+  match_threshold float,
+  match_count int,
+  p_user_email text  -- New parameter for the user's email
+)
+returns table (
+  id uuid,
+  file_name text,
+  content text,
+  similarity float,
+  user_email text
+)
+language plpgsql
+as $$
+begin
+  return query
+  select
+    documents.id,
+    documents.file_name,
+    documents.content,
+    1 - (documents.embedding <=> query_embedding) as similarity,
+    documents.user_email
+  from documents
+  -- This line ensures security by filtering for the logged-in user
+  where documents.user_email = p_user_email 
+    and 1 - (documents.embedding <=> query_embedding) > match_threshold
+  order by similarity desc
+  limit match_count;
+end;
+$$;

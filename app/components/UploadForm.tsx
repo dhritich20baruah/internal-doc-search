@@ -2,7 +2,6 @@
 import React, { useState } from "react";
 import { Loader2, FileUp, CheckCircle2, AlertCircle } from "lucide-react";
 import pdfToText from "react-pdftotext";
-import Tesseract from "tesseract.js";
 import { supabase } from "@/lib/supabase-client";
 
 const isImageFile = (file: File) => {
@@ -121,6 +120,17 @@ const UploadForm = () => {
         throw new Error("Failed to extracted content from the file.");
       }
 
+      //GENERATE EMBEDDINGS
+      setMessage("Generating semantic search vector...");
+      const embedRes = await fetch("/api/embed",{
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({text: extractedTextContent}),
+      })
+
+      if (!embedRes.ok) throw new Error("Failed to generate search vector");
+      const {embedding} = await embedRes.json();
+
       setMessage("Uploading file to storage...");
       const fileExt = file.name.split(".").pop();
       const storagePath = `${userId}/${Date.now()}.${fileExt}`;
@@ -150,6 +160,7 @@ const UploadForm = () => {
             topic: "general",
             user_id: userId,
             user_email: user_email,
+            embedding: embedding,
           },
         ])
         .select()

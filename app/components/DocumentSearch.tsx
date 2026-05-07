@@ -58,19 +58,35 @@ export default function DocumentSearch() {
     setLoading(true);
 
     try {
+      const embedRes = await fetch("/api/embed", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({text: searchQuery})
+      });
+
+      if (!embedRes.ok) throw new Error("Failed to generate search vector");
+      const {embedding} = await embedRes.json()
+
       const {
         data: { session },
       } = await supabase.auth.getSession();
       const user_email = session?.user.email;
 
-      const { data, error } = await supabase
-        .from("documents")
-        .select("*")
-        .eq("user_email", user_email)
-        .textSearch("tsv_content, category, file_name", searchQuery, {
-          type: "websearch",
-        })
-        .limit(50);
+      // const { data, error } = await supabase
+      //   .from("documents")
+      //   .select("*")
+      //   .eq("user_email", user_email)
+      //   .textSearch("tsv_content, category, file_name", searchQuery, {
+      //     type: "websearch",
+      //   })
+      //   .limit(50);
+
+      const {data, error} = await supabase.rpc("match_documents",{
+        query_embedding: embedding,
+        match_threshold: 0.55,
+        match_count: 15,
+        p_user_email: user_email
+      })
       if (error) throw error;
 
       setResults(data || []);
