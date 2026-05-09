@@ -144,17 +144,13 @@ const UploadForm = () => {
 
       if (uploadError) throw uploadError;
 
-      const {
-        data: { publicUrl },
-      } = supabase.storage.from("documents").getPublicUrl(storagePath);
-
       setMessage("Indexing metadata....");
       const { data: insertData, error: insertError } = await supabase
         .from("documents")
         .insert([
           {
             file_name: title,
-            file_url: publicUrl,
+            file_url: storagePath,
             content: extractedTextContent,
             category: category,
             topic: "general",

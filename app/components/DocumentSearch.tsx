@@ -60,33 +60,24 @@ export default function DocumentSearch() {
     try {
       const embedRes = await fetch("/api/embed", {
         method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({text: searchQuery})
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: searchQuery }),
       });
 
       if (!embedRes.ok) throw new Error("Failed to generate search vector");
-      const {embedding} = await embedRes.json()
+      const { embedding } = await embedRes.json();
 
       const {
         data: { session },
       } = await supabase.auth.getSession();
       const user_email = session?.user.email;
 
-      // const { data, error } = await supabase
-      //   .from("documents")
-      //   .select("*")
-      //   .eq("user_email", user_email)
-      //   .textSearch("tsv_content, category, file_name", searchQuery, {
-      //     type: "websearch",
-      //   })
-      //   .limit(50);
-
-      const {data, error} = await supabase.rpc("match_documents",{
+      const { data, error } = await supabase.rpc("match_documents", {
         query_embedding: embedding,
         match_threshold: 0.55,
         match_count: 15,
-        p_user_email: user_email
-      })
+        p_user_email: user_email,
+      });
       if (error) throw error;
 
       setResults(data || []);
@@ -134,6 +125,19 @@ export default function DocumentSearch() {
     } catch (error) {
       console.error(error);
     }
+  };
+
+  const handleViewFile = async (storagePath: string) => {
+    const { data, error } = await supabase.storage
+      .from("documents")
+      .createSignedUrl(storagePath, 60 * 60); // valid for 1 hour
+
+    if (error || !data) {
+      console.error("Could not generate signed URL:", error?.message);
+      return;
+    }
+
+    window.open(data.signedUrl, "_blank");
   };
 
   return (
@@ -218,7 +222,7 @@ export default function DocumentSearch() {
               Clear Results
             </button>
           </div>
-          
+
           <ul className="space-y-4 flex flex-wrap justify-center">
             {results.map((doc) => (
               <li
@@ -243,15 +247,13 @@ export default function DocumentSearch() {
                     </div>
                   </div>
 
-                  <a
-                    href={doc.file_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <button
+                    onClick={() => handleViewFile(doc.file_url)} // file_url now holds the path
                     className="p-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
                     title="View Original"
                   >
                     <ExternalLink className="w-5 h-5" />
-                  </a>
+                  </button>
                 </div>
 
                 <div className="mt-3">
