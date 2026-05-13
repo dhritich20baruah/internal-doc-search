@@ -11,6 +11,8 @@ import {
   ExternalLink,
   Folder,
   Trash2,
+  ImageIcon,
+  PlayIcon,
 } from "lucide-react";
 import axios from "axios";
 
@@ -19,6 +21,7 @@ export default function DocumentSearch() {
   const [results, setResults] = useState<MarketingDocument[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fileType, setFileType] = useState("FileText");
 
   const fetchAllDocs = async () => {
     setLoading(true);
@@ -231,8 +234,14 @@ export default function DocumentSearch() {
               >
                 <div className="flex items-start justify-between">
                   <div className="flex items-center space-x-3">
-                    <div className="p-2 bg-gray-50 rounded-lg group-hover:bg-blue-50 transition-colors">
-                      <FileText className="w-5 h-5 text-gray-600 group-hover:text-blue-600" />
+                    <div className="p-2 bg-gray-50 rounded-lg group-hover:bg-blue-50 transition-colors text-black">
+                      {["pdf", "docx"].includes(doc.topic) ? (
+                        <FileText className="w-5 h-5 text-gray-600 group-hover:text-blue-600" />
+                      ) : ["jpeg", "png", "jpg"].includes(doc.topic) ? (
+                        <ImageIcon className="w-5 h-5 text-gray-600 group-hover:text-blue-600" />
+                      ) : (
+                        <PlayIcon className="w-5 h-5 text-gray-600 group-hover:text-blue-600" />
+                      )}
                     </div>
                     <div>
                       <h5 className="text-base font-bold text-gray-900 group-hover:text-blue-700 transition-colors">

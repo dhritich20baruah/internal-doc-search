@@ -153,7 +153,7 @@ const UploadForm = () => {
             file_url: storagePath,
             content: extractedTextContent,
             category: category,
-            topic: "general",
+            topic: fileExt,
             user_id: userId,
             user_email: user_email,
             embedding: embedding,
